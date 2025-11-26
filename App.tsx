@@ -171,10 +171,10 @@ const App: React.FC = () => {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const model = 'gemini-3-pro-preview';
         
-        let systemContext = "";
+        let systemInstruction = "";
         if (promptMode === 'morph' && engineRef.current) {
             const availableColors = engineRef.current.getUniqueColors().join(', ');
-            systemContext = `
+            systemInstruction = `
                 CONTEXT: You are re-assembling an existing pile of voxels.
                 The current pile consists of these colors: [${availableColors}].
                 TRY TO USE THESE COLORS if they fit the requested shape.
@@ -182,7 +182,7 @@ const App: React.FC = () => {
                 The model should be roughly the same volume as the previous one.
             `;
         } else {
-            systemContext = `
+            systemInstruction = `
                 CONTEXT: You are creating a brand new voxel art scene from scratch.
                 Be creative with colors.
             `;
@@ -191,8 +191,6 @@ const App: React.FC = () => {
         const response = await ai.models.generateContent({
             model,
             contents: `
-                    ${systemContext}
-                    
                     Task: Generate a 3D voxel art model of: "${prompt}".
                     
                     Strict Rules:
@@ -203,6 +201,7 @@ const App: React.FC = () => {
                     
                     Return ONLY a JSON array of objects.`,
             config: {
+                systemInstruction: systemInstruction,
                 responseMimeType: "application/json",
                 responseSchema: {
                     type: Type.ARRAY,
